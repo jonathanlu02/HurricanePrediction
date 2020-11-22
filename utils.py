@@ -29,11 +29,11 @@ def get_hurricane_attributes(dataframe, ID):
     '''
     hurricane_data = dataframe[dataframe['ID']==ID]
     duration = len(hurricane_data)
-    make_landfall = np.any(hurricane_data['Record'].str.contains('L'))
+    make_landfall = int(np.any(hurricane_data['Record'].str.contains(' L')))
     initial_latitude = hurricane_data['Latitude'].iloc[0]
     initial_longitude = hurricane_data['Longitude'].iloc[0]
     if make_landfall:
-        record = hurricane_data.loc[hurricane_data['Record'].str.contains('L')].iloc[0]
+        record = hurricane_data.loc[hurricane_data['Record'].str.contains(' L')].iloc[0]
         landfall_latitude = record['Latitude']
         landfall_longitude = record['Longitude']
     else:
@@ -44,11 +44,16 @@ def get_hurricane_attributes(dataframe, ID):
         'Duration': duration,
         'Initial latitude': initial_latitude,
         'Initial longitude': initial_longitude,
-        'Makes Landfall': make_landfall,
+        'Makes landfall': make_landfall,
         'Landfall latitude': landfall_latitude,
         'Landfall longitude': landfall_longitude
     }
     return attrs
+
+def create_hurricane_dataframe(dataframe):
+    '''Based on a dataframe of hurricane records, returns a new dataframe
+    where each record contains data for a unique hurricane.'''
+    IDs = dataframe['ID'].unique()
 
 
 ### -------------------------- Plotting functions -------------------------- ###
@@ -61,10 +66,14 @@ def create_geoaxes(projection=ccrs.Orthographic(-70, 30), extent=(-100, -40, 10,
     ax.gridlines()
     return ax
 
-def plot_hurricane_trajectory(dataframe, ID, ax=create_geoaxes()):
+def plot_hurricane_trajectory(dataframe, ID, ax=create_geoaxes(), plot_genesis=True):
     hurricane = dataframe[dataframe['ID']==ID]
     lats = hurricane['Latitude']
     lons = hurricane['Longitude']
     ax.plot(lons, lats, 'r-x', transform=ccrs.PlateCarree())
+    if plot_genesis:
+        genesis_lat = lats.iloc[0]
+        genesis_lon = lons.iloc[0]
+        ax.plot([genesis_lon], [genesis_lat], marker='s', c='b', transform=ccrs.PlateCarree())
 
 
