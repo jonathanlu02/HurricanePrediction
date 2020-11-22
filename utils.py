@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import cftime
 import cartopy.crs as ccrs
+import cartopy
 
 ### -------------------------- Data cleaning functions -------------------------- ###
 
@@ -58,12 +59,14 @@ def create_hurricane_dataframe(dataframe):
 
 ### -------------------------- Plotting functions -------------------------- ###
 
-def create_geoaxes(projection=ccrs.Orthographic(-70, 30), extent=(-100, -40, 10, 50)):
+def create_geoaxes(projection=ccrs.Orthographic(-70, 30), extent=(-100, -20, 0, 50)):
     '''Creates a set of geoaxes to be passed for plotting functions.'''
     ax = plt.axes(projection=projection)
     ax.set_extent(extent)
     ax.coastlines()
     ax.gridlines()
+    ax.add_feature(cartopy.feature.OCEAN)
+    ax.add_feature(cartopy.feature.LAND)
     return ax
 
 def plot_hurricane_trajectory(dataframe, ID, ax=create_geoaxes(), plot_genesis=True):
@@ -76,4 +79,16 @@ def plot_hurricane_trajectory(dataframe, ID, ax=create_geoaxes(), plot_genesis=T
         genesis_lon = lons.iloc[0]
         ax.plot([genesis_lon], [genesis_lat], marker='s', c='b', transform=ccrs.PlateCarree())
 
+def plot_point(lat, lon, ax=create_geoaxes()):
+    '''Plots a single latitude-longitude coordinate to geoaxes ax.'''
+    ax.plot([lon], [lat], transform=ccrs.PlateCarree())
 
+
+def plot_hurricane_prediction(dataframe, ID, lat_pred, lon_pred, ax=create_geoaxes()):
+    hurricane = dataframe[dataframe['ID']==ID]
+    lats = hurricane['Latitude']
+    lons = hurricane['Longitude']
+    initial_lon = lons.iloc[0]
+    initial_lat = lats.iloc[0]
+    ax.plot(lons, lats, 'r-x', transform=ccrs.PlateCarree())
+    ax.plot((initial_lon, lon_pred), (initial_lat, lat_pred), c='g', transform=ccrs.PlateCarree())
